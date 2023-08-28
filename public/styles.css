@@ -17,9 +17,9 @@ main {
   margin: auto auto;
   justify-content: center;
   background-color: white;
-  padding: 40px;
+  padding: 80px;
   border-radius: 15px;
-  box-shadow: 10px 10px;
+  box-shadow: -10px -10px;
 }
 h1 {
   margin-bottom: 40px;
