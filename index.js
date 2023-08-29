@@ -19,6 +19,7 @@ const Message = mongoose.model("Message", messageSchema);
 // USING MIDDLEWARES
 app.use(express.static(path.join(path.resolve(), "public")));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.set("view engine", "ejs");
 
@@ -43,13 +44,32 @@ app.post("/contact", async (req, res) => {
   res.render("success", { users: "Agastsya" });
 });
 
-app.get("/", (req, res) => {
-  res.render("login");
+const isAuthenticated = (req, res, next) => {
+  const { tokens } = req.cookies;
+
+  if (tokens) {
+    next();
+  } else {
+    res.render("login");
+  }
+};
+
+app.get("/", isAuthenticated, (req, res) => {
+  res.render("logout");
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("token", "redhead", {
+  res.cookie("tokens", "redhead", {
+    expires: new Date(Date.now() + 60 * 1000),
     httpOnly: "true",
+  });
+  res.redirect("/");
+});
+
+app.get("/logout", (req, res) => {
+  res.cookie("tokens", "redhead", {
+    httpOnly: "true",
+    expires: new Date(Date.now()),
   });
   res.redirect("/");
 });
