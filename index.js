@@ -1,8 +1,8 @@
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
-
 const app = express();
+const cookieParser = require("cookie-parser");
 
 mongoose
   .connect("mongodb://127.0.0.1:27017", { dbName: "backend-rep" })
@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.set("view engine", "ejs");
 
-app.get("/", (req, res) => {
+app.get("/contact", (req, res) => {
   res.render("index", { name: "Agastsya" });
 });
 
@@ -32,7 +32,7 @@ app.get("/users", (req, res) => {
   });
 });
 
-app.post("/", async (req, res) => {
+app.post("/contact", async (req, res) => {
   // const messageData = {
   //   name: req.body.name,
   //   email: req.body.email,
@@ -41,6 +41,17 @@ app.post("/", async (req, res) => {
   await Message.create({ name, email });
   //res.redirect("/success") you will have to create a new route for this and you can render success page there it is also a way
   res.render("success", { users: "Agastsya" });
+});
+
+app.get("/", (req, res) => {
+  res.render("login");
+});
+
+app.post("/login", (req, res) => {
+  res.cookie("token", "redhead", {
+    httpOnly: "true",
+  });
+  res.redirect("/");
 });
 
 app.listen(5000, () => {

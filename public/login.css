@@ -1,0 +1,21 @@
+body {
+  background-color: antiquewhite;
+  margin: auto;
+  font-family: "Poppins", sans-serif;
+}
+.login-button {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+button {
+  background-color: aquamarine;
+  border: 0;
+  width: 20vw;
+  height: 10vh;
+  font-size: larger;
+  border-radius: 15px;
+  cursor: pointer;
+  font-weight: bolder;
+}
