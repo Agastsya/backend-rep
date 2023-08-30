@@ -10,12 +10,12 @@ mongoose
   .catch((e) => console.log(e));
 
 //CREATING OR GENERATING A MONGOOSE MODEL SCHEMA WHICH GIVES TYPES TO THE MONGOOSE MODEL
-const messageSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   name: String,
   email: String,
 });
 
-const Message = mongoose.model("Message", messageSchema);
+const User = mongoose.model("User", userSchema);
 // USING MIDDLEWARES
 app.use(express.static(path.join(path.resolve(), "public")));
 app.use(express.urlencoded({ extended: true }));
@@ -23,27 +23,8 @@ app.use(cookieParser());
 
 app.set("view engine", "ejs");
 
-app.get("/contact", (req, res) => {
-  res.render("index", { name: "Agastsya" });
-});
-
-app.get("/users", (req, res) => {
-  res.json({
-    userInfo,
-  });
-});
-
-app.post("/contact", async (req, res) => {
-  // const messageData = {
-  //   name: req.body.name,
-  //   email: req.body.email,
-  // };
-  const { name, email } = req.body;
-  await Message.create({ name, email });
-  //res.redirect("/success") you will have to create a new route for this and you can render success page there it is also a way
-  res.render("success", { users: "Agastsya" });
-});
-
+//this is also a middleware
+// This function can be used to authenticate users and next makes sure that the function sends it to the next function
 const isAuthenticated = (req, res, next) => {
   const { tokens } = req.cookies;
 
@@ -58,7 +39,14 @@ app.get("/", isAuthenticated, (req, res) => {
   res.render("logout");
 });
 
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
+  const { name, email } = req.body;
+
+  await User.create({
+    name: name,
+    email: email,
+  });
+
   res.cookie("tokens", "redhead", {
     expires: new Date(Date.now() + 60 * 1000),
     httpOnly: "true",
