@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const app = express();
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 mongoose
   .connect("mongodb://127.0.0.1:27017", { dbName: "backend-rep" })
@@ -14,6 +15,7 @@ mongoose
 const userSchema = new mongoose.Schema({
   name: String,
   email: String,
+  password: String,
 });
 
 const User = mongoose.model("User", userSchema);
@@ -32,12 +34,10 @@ const isAuthenticated = async (req, res, next) => {
   if (tokens) {
     const decoded = jwt.verify(tokens, "helloworldthisisme");
     req.user = await User.findById(decoded._id);
-    console.log(decoded);
-    console.log(req.user);
 
     next();
   } else {
-    res.render("login");
+    res.redirect("/login");
   }
 };
 
@@ -46,11 +46,47 @@ app.get("/", isAuthenticated, (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  const { name, email } = req.body;
+  const { email, password } = req.body;
+  let user = await User.findOne({ email });
+  if (!user) {
+    return res.redirect("/register");
+  }
 
-  const user = await User.create({
-    name: name,
-    email: email,
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch)
+    return res.render("login", { email, message: "Incorrect Password" });
+
+  const token = jwt.sign({ _id: user._id }, "helloworldthisisme");
+
+  res.cookie("tokens", token, {
+    expires: new Date(Date.now() + 60 * 1000),
+    httpOnly: "true",
+  });
+  res.redirect("/");
+});
+
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
+app.post("/register", async (req, res) => {
+  const { name, email, password } = req.body;
+
+  let user = await User.findOne({ email });
+  if (user) {
+    return res.redirect("/login");
+  }
+  const hashedpassword = await bcrypt.hash(password, 10);
+
+  user = await User.create({
+    name,
+    email,
+    password: hashedpassword,
   });
 
   const token = jwt.sign({ _id: user._id }, "helloworldthisisme");

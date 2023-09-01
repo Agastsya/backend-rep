@@ -48,3 +48,8 @@ button {
   font-size: large;
   border-radius: 5px;
 }
+.error {
+  color: red;
+  text-align: right;
+  font-size: small;
+}
