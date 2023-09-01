@@ -3,6 +3,7 @@ const path = require("path");
 const mongoose = require("mongoose");
 const app = express();
 const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 mongoose
   .connect("mongodb://127.0.0.1:27017", { dbName: "backend-rep" })
@@ -25,10 +26,15 @@ app.set("view engine", "ejs");
 
 //this is also a middleware
 // This function can be used to authenticate users and next makes sure that the function sends it to the next function
-const isAuthenticated = (req, res, next) => {
+const isAuthenticated = async (req, res, next) => {
   const { tokens } = req.cookies;
 
   if (tokens) {
+    const decoded = jwt.verify(tokens, "helloworldthisisme");
+    req.user = await User.findById(decoded._id);
+    console.log(decoded);
+    console.log(req.user);
+
     next();
   } else {
     res.render("login");
@@ -36,18 +42,20 @@ const isAuthenticated = (req, res, next) => {
 };
 
 app.get("/", isAuthenticated, (req, res) => {
-  res.render("logout");
+  res.render("logout", { name: req.user.name });
 });
 
 app.post("/login", async (req, res) => {
   const { name, email } = req.body;
 
-  await User.create({
+  const user = await User.create({
     name: name,
     email: email,
   });
 
-  res.cookie("tokens", "redhead", {
+  const token = jwt.sign({ _id: user._id }, "helloworldthisisme");
+
+  res.cookie("tokens", token, {
     expires: new Date(Date.now() + 60 * 1000),
     httpOnly: "true",
   });
